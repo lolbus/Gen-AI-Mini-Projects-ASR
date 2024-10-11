@@ -1,9 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
-import nltk
 from nltk.tokenize import sent_tokenize
 import streamlit as st
-from torch.cuda.amp import autocast
 import time
 
 
@@ -103,11 +101,12 @@ with col2:
         if input_text:
             # Start timer
             start_time = time.time()
+            
+            # Paraphrase the input text
             paraphrased_text = paraphrase(input_text)
-            # End timer
-            end_time = time.time()
+           
             # Calculate elapsed time
-            elapsed_time = end_time - start_time
+            elapsed_time = time.time() - start_time
 
             st.write(paraphrased_text)
             st.write("---------")
