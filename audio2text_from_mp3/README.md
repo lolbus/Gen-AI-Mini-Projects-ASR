@@ -5,7 +5,8 @@
 ![](pics_readme/1013.gif)
 
 ### CLICK TO WATCH THE VIDEO
-[![Build Your Own Audio Transcription App in Under 10 Minutes!](https://img.youtube.com/vi/56upVPEJbm0/0.jpg)](https://youtu.be/56upVPEJbm0)
+[![Build Your Own Audio Transcription App in Under 10 Minutes!](https://img.youtube.com/vi/MkuttKl5wBk/0.jpg)](https://youtu.be/MkuttKl5wBk)
+
 
 This repository contains the Python code for an audio transcription web application built using the Hugging Face Whisper model and Streamlit.
 
