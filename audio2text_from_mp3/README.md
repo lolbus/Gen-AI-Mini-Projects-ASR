@@ -40,6 +40,7 @@ streamlit run app.py
 ## Resources:
 
 -[whisper on hugging face](https://huggingface.co/openai/whisper-small)
+
 -[how to process long audio using whisper](https://huggingface.co/blog/asr-chunking)
 
 
