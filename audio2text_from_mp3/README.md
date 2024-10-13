@@ -1,5 +1,9 @@
 # Audio Transcription App (Whisper and Streamlit)
 
+### Demo
+------------------------
+![](pics_readme/1013.gif)
+
 ### CLICK TO WATCH THE VIDEO
 [![Build Your Own Audio Transcription App in Under 10 Minutes!](https://img.youtube.com/vi/56upVPEJbm0/0.jpg)](https://youtu.be/56upVPEJbm0)
 
