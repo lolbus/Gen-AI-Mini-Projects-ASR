@@ -26,16 +26,39 @@ You can install these libraries using pip:
 ```
 pip install transformers streamlit
 ```
-You may also need to download additional NLTK data for tokenization. You can do this using the following command:
-```
-import nltk
-nltk.download('punkt_tab')
-```
 
 To run this app, write this on your command line:
 ```
 streamlit run app.py
 ```
+
+For low GPU RAM or running it purely on CPU, I recommend you to use the distiled models from WHISPER:
+```
+import time
+from transformers import  pipeline,AutoModelForSpeechSeq2Seq,AutoProcessor
+import torch
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+model_id = "distil-whisper/distil-small.en"
+
+model = AutoModelForSpeechSeq2Seq.from_pretrained(
+    model_id, low_cpu_mem_usage=True, use_safetensors=True
+)
+
+model.to(device)
+processor = AutoProcessor.from_pretrained(model_id)
+pipe = pipeline(
+    "automatic-speech-recognition",
+    model=model,
+    tokenizer=processor.tokenizer,
+    feature_extractor=processor.feature_extractor,
+    return_timestamps=True,
+    chunk_length_s=15,
+    device=device,
+)
+```
+
 ------
 
 ## Resources:
