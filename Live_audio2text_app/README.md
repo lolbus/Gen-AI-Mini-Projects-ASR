@@ -20,6 +20,7 @@ Before you begin, ensure you have the following installed:
 
 - **Python 3.9+**
 - **CUDA-supported GPU (optional but recommended)** for faster transcription using Whisper.
+- **Pytorch with cuda**
 - **Git** for cloning the repository.
 
 ---
