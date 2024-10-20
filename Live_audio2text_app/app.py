@@ -66,6 +66,10 @@ language = st.selectbox("Choose the language of the audio", options=languages)
 st.write("**When you choose 'translate', it translates the audio to English**.")
 task = st.selectbox("Choose the task", options=tasks)
 
+# Add slider for TRANSCRIPTION_INTERVAL (max 30, default 20)
+TRANSCRIPTION_INTERVAL = st.slider("Set Transcription Interval (in seconds)", min_value=5, max_value=30, value=20)
+
+
 # Create button states
 start_button = st.button('Start Transcription')
 stop_button = st.button('Stop Transcription')
@@ -80,7 +84,7 @@ if start_button:
     CHANNELS = 1
     RATE = int(p.get_device_info_by_index(input_device_index)['defaultSampleRate'])
     WHISPER_RATE = 16000  # Whisper expects 16kHz input
-    TRANSCRIPTION_INTERVAL = 30  # Set a short interval for responsiveness
+    # TRANSCRIPTION_INTERVAL = 30  # Set a short interval for responsiveness
 
     # Open a stream to record audio
     stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, input_device_index=input_device_index)
@@ -115,8 +119,6 @@ if start_button:
         # Update live transcription
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         update_transcription(transcription_text,time_taken)  # Save transcription to session state
-        # logging_textbox = st.empty()
-        # logging_textbox.text_area(f"{task} Output", value=st.session_state["transcriptions"], height=500)
         live_text.markdown(f"{st.session_state['transcriptions']}")
 
         # Optionally save the audio file
@@ -125,8 +127,7 @@ if start_button:
             f.write(f"[{timestamp}] {transcription_text}\n")
         
         
-        # Add a short delay to prevent overloading
-        # time.sleep(0.5)
+        # Add a short 
 
     if stop_recording:
         st.write("Stopped listening.")
