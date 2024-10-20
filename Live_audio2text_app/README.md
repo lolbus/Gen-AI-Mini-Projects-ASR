@@ -1,5 +1,7 @@
 # 🎙️ Live Audio Transcription App using Whisper
 
+![](app_interface.JPG)
+
 This repository contains a Streamlit web app that performs live audio transcription using OpenAI's Whisper model. The app allows users to transcribe or translate audio in real-time using their system's microphone. The transcription is displayed on the web interface with timestamps.
 
 ---
