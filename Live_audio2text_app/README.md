@@ -18,7 +18,7 @@ This repository contains a Streamlit web app that performs live audio transcript
 
 Before you begin, ensure you have the following installed:
 
-- **Python 3.8+**
+- **Python 3.9+**
 - **CUDA-supported GPU (optional but recommended)** for faster transcription using Whisper.
 - **Git** for cloning the repository.
 
@@ -43,7 +43,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ### 3. Install Dependencies
 You can install the required dependencies by running:
 ```
-pip install -r requirements.txt
+pip install scipy pyaudiowpatch matplotlib numpy transformers streamlit
 ```
 
 ### 4. Install Additional Dependencies for Windows (Optional)
@@ -78,7 +78,7 @@ print('These are all the available speakers and microphones\n')
 for idx in range(p.get_device_count()):
     print(p.get_device_info_by_index(idx))
 ```
-Look for devices where "isLoopbackDevice": True and note the corresponding index.
+Look for devices where ``` "isLoopbackDevice": True ``` and note the corresponding index.
 
 ### 3. Customizing the App
 Transcription Interval
