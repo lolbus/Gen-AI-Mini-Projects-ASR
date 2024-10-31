@@ -31,25 +31,25 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```
-git clone https://github.com/yourusername/live-transcription-app.git
-cd live-transcription-app
+git clone https://github.com/mohan696matlab/Gen-AI-Mini-Projects.git
+cd Live_audio2text_app
 ```
 
 ### 2. Create a Virtual Environment
-It is recommended to use a virtual environment to manage your dependencies:
+It is recommended to use a virtual environment (use Anaconda) to manage your dependencies:
 
 ```
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate 
+conda create -n audio2text python=3.10
+conda activate audio2text
 ```
 
 ### 3. Install Dependencies
 You can install the required dependencies by running:
 ```
-pip install scipy pyaudiowpatch matplotlib numpy transformers streamlit
+pip install scipy matplotlib numpy transformers streamlit
 ```
 
-### 4. Install Additional Dependencies for Windows (Optional)
+### 4. Install Additional Dependencies for Windows
 If you are using Windows and want to use your system's speakers as input, install the pyaudiowpatch library:
 
 ``` pip install pyaudiowpatch ```
