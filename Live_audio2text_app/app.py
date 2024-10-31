@@ -22,7 +22,7 @@ def list_audio_devices():
     return device_list
 
 # Function to cache the model and processor
-@st.cache_resource
+@st.cache_resource          
 def load_whisper_model():
     processor = WhisperProcessor.from_pretrained("openai/whisper-small")
     model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small").to('cuda')
