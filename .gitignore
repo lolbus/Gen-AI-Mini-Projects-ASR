@@ -13,3 +13,5 @@ Live_audio2text_app/temp_audio.wav
 Live_audio2text_app/li.JPG
 0.30
 Finetune_whisper/2.6.1
+Live_audio2text_app/temp_audio.wav
+audio2text_from_mp3/output_audio.mp3
