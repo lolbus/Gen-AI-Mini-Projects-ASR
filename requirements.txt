@@ -1,2 +1,5 @@
 transformers
 streamlit
+torch
+torchvision
+torchaudio
