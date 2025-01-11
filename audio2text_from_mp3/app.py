@@ -60,6 +60,12 @@ def main():
 
 
                 # Transcribe audio
+                pipe.model.config.forced_decoder_ids = (
+                    pipe.tokenizer.get_decoder_prompt_ids(
+                    language=language, 
+                    task=task
+                    )
+                )
                 transcription = pipe(temp_file_path, generate_kwargs={"language": language, "task": task})
                 formatted_transcription = format_transcription(transcription)
                 
