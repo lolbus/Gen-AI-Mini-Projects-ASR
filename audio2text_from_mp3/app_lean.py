@@ -3,8 +3,6 @@ from transformers import pipeline
 import torch
 import time
 import os
-import requests
-from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 # Set the page config at the top
 st.set_page_config(page_title="Audio-to-Text Transcription", layout="centered", initial_sidebar_state="auto")
@@ -33,9 +31,6 @@ def main():
     st.markdown("<h1 style='color: #00bfff;'>Audio-to-Text Transcription App</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: #000000;'>Generate transcription with timestamps and download the result.</p>", unsafe_allow_html=True)
     
-    # Add API endpoint configuration
-    api_endpoint = st.sidebar.text_input("API Endpoint", "http://your-backend-url/transcribe")
-    
     # File uploader
     uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "wav", "ogg"])
     st.audio(uploaded_file)
@@ -51,47 +46,40 @@ def main():
     # Transcribe button
     if uploaded_file is not None:
         if st.button(f"{task}"):
-            with st.spinner("Processing..."):
+            with st.spinner("Transcribing/Translating..."):
                 start_time = time.time()
 
-                try:
-                    # Prepare the multipart form data
-                    m = MultipartEncoder(
-                        fields={
-                            'file': (uploaded_file.name, uploaded_file, 'audio/mpeg'),
-                            'params': json.dumps({
-                                'language': language,
-                                'task': task
-                            })
-                        }
-                    )
+                # Create temporary file path
+                temp_dir = "temp_dir"
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_file_path = os.path.join(temp_dir, uploaded_file.name)
 
-                    # Make the API request
-                    response = requests.post(
-                        api_endpoint,
-                        data=m,
-                        headers={'Content-Type': m.content_type}
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        if result.get('success'):
-                            formatted_transcription = result['transcription']
-                            st.success(f"{task} completed!")
-                            st.text_area(f"{task} Output", value=formatted_transcription, height=500)
-                            
-                            # Download transcription option
-                            st.download_button("Download Transcription", formatted_transcription, file_name="transcription.txt")
-                        else:
-                            st.error(f"API Error: {result.get('error', 'Unknown error')}")
-                    else:
-                        st.error(f"API request failed with status code: {response.status_code}")
+                # Save the uploaded file temporarily
+                with open(temp_file_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
 
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
+
+                # Transcribe audio
+                pipe.model.config.forced_decoder_ids = (
+                    pipe.tokenizer.get_decoder_prompt_ids(
+                    language=language, 
+                    task=task
+                    )
+                )
+                transcription = pipe(temp_file_path, generate_kwargs={"language": language, "task": task})
+                formatted_transcription = format_transcription(transcription)
+                
+                st.success(f"{task} completed!")
+                st.text_area(f"{task} Output", value=formatted_transcription, height=500)
+                
+                # Download transcription option
+                st.download_button("Download Transcription", formatted_transcription, file_name="transcription.txt")
                 
                 end_time = time.time()
                 st.write(f"Time taken: {round(end_time - start_time, 2)} seconds")
+                
+                # Clean up the temporary file
+                os.remove(temp_file_path)
 
 # Helper function to format the transcription with timestamps
 def format_transcription(transcription):
