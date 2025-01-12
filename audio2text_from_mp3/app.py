@@ -2,105 +2,106 @@ import streamlit as st
 from transformers import pipeline
 import torch
 import time
-import os
+import json
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+import os
+os.environ['CURL_CA_BUNDLE'] = ''
+
 
 # Set the page config at the top
 st.set_page_config(page_title="Audio-to-Text Transcription", layout="centered", initial_sidebar_state="auto")
 
-# Check if GPU is available
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-# Initialize the whisper model pipeline
-# When a function is decorated with @st.cache_resource, 
-# Streamlit will cache the output of that function the first time it's called.
-# In subsequent calls, instead of re-running the function, it will return the cached result. 
-# This avoids the overhead of loading the model multiple times, speeding up the app.
-@st.cache_resource
-def load_model():
-    return pipeline("automatic-speech-recognition", 
-                    "openai/whisper-small", 
-                    chunk_length_s=30, 
-                    stride_length_s=5, 
-                    return_timestamps=True, 
-                    device=device)
-
-pipe = load_model()
+# Add API endpoint configuration
+api_endpoint = "https://seemingly-ultimate-ape.ngrok-free.app/transcribe"
+status_endpoint = "https://seemingly-ultimate-ape.ngrok-free.app/status/"
 
 # Define the app layout
 def main():
     st.markdown("<h1 style='color: #00bfff;'>Audio-to-Text Transcription App</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: #000000;'>Generate transcription with timestamps and download the result.</p>", unsafe_allow_html=True)
     
-    # Add API endpoint configuration
-    api_endpoint = st.sidebar.text_input("API Endpoint", "http://your-backend-url/transcribe")
-    
     # File uploader
     uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "wav", "ogg"])
-    st.audio(uploaded_file)
+    if uploaded_file is not None:
+        st.audio(uploaded_file)
     
     # Select language and task
-    languages = ['English', 'Mandarin', 'Malay'] # Choose the source language
-    tasks = ['transcribe', 'translate'] # when you chose translate -> it means translation to english
-
+    languages = ['English', 'Mandarin', 'Malay']  # Choose the source language
+    tasks = ['transcribe', 'translate']  # When you choose translate, it translates to English
+    
     language = st.selectbox("Choose the language of the audio", options=languages)
     st.write("**When you choose 'translate', it translates the audio to English**.")
     task = st.selectbox("Choose the task", options=tasks)
-
+    
     # Transcribe button
     if uploaded_file is not None:
-        if st.button(f"{task}"):
+        if st.button(f"{task.capitalize()}"):
             with st.spinner("Processing..."):
                 start_time = time.time()
-
+                
                 try:
-                    # Prepare the multipart form data
-                    m = MultipartEncoder(
-                        fields={
-                            'file': (uploaded_file.name, uploaded_file, 'audio/mpeg'),
-                            'params': json.dumps({
-                                'language': language,
-                                'task': task
-                            })
-                        }
-                    )
-
-                    # Make the API request
+                    # Prepare the request data
+                    files = {'file': uploaded_file}
+                    data = {
+                        'language': language.lower(),
+                        'task': task.lower()
+                    }
+                    
+                    # Send POST request to initiate transcription
                     response = requests.post(
                         api_endpoint,
-                        data=m,
-                        headers={'Content-Type': m.content_type}
+                        files=files,
+                        data=data
                     )
+                    loop_count = 0
                     
                     if response.status_code == 200:
                         result = response.json()
                         if result.get('success'):
-                            formatted_transcription = result['transcription']
-                            st.success(f"{task} completed!")
-                            st.text_area(f"{task} Output", value=formatted_transcription, height=500)
+                            job_id = result.get('job_id')
+                            st.success(f"Transcription started! Job ID: {job_id}")
                             
-                            # Download transcription option
-                            st.download_button("Download Transcription", formatted_transcription, file_name="transcription.txt")
+                            # Poll for status
+                            with st.spinner("Waiting for transcription to complete..."):
+                                while True:
+                                    status_response = requests.get(status_endpoint + job_id)
+                                    status_data = status_response.json()
+                                    
+                                    if not status_data.get('success'):
+                                        st.error(status_data.get('error', 'Unknown error'))
+                                        break
+                                    
+                                    status = status_data.get('status')
+                                    if status == 'completed':
+                                        formatted_transcription = status_data.get('result')
+                                        st.success(f"{task.capitalize()} completed!")
+                                        st.text_area(f"{task.capitalize()} Output", value=formatted_transcription, height=500)
+                                        
+                                        # Download transcription option
+                                        st.download_button("Download Transcription", formatted_transcription, file_name="transcription.txt")
+                                        break
+                                    elif status == 'failed':
+                                        error_message = status_data.get('error', 'Unknown error')
+                                        st.error(f"Transcription failed: {error_message}")
+                                        break
+                                    else:
+                                        if loop_count % 20 == 0:
+                                            st.info(f"Transcription is still in progress... Current Runtime {time.time() - start_time:.0f}s")
+                                        loop_count += 1
+                                        time.sleep(3)  # Wait before polling again
                         else:
                             st.error(f"API Error: {result.get('error', 'Unknown error')}")
                     else:
                         st.error(f"API request failed with status code: {response.status_code}")
-
+                
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
                 
                 end_time = time.time()
                 st.write(f"Time taken: {round(end_time - start_time, 2)} seconds")
 
-# Helper function to format the transcription with timestamps
-def format_transcription(transcription):
-    formatted_text = ""
-    for line in transcription['chunks']:
-        text = line["text"]
-        ts = line["timestamp"]
-        formatted_text += f"[{ts[0]}:{ts[1]}] {text}\n"
-    return formatted_text.strip()
+# Helper function to format the transcription with timestamps (not needed anymore as backend handles it)
 
 if __name__ == "__main__":
     main()
