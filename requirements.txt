@@ -1,4 +1,6 @@
-transformers
+transformers[torch]
+requests
+requests-toolbelt
 streamlit
 torch
 torchvision
