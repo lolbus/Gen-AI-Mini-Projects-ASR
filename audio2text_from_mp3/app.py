@@ -1,11 +1,10 @@
 import streamlit as st
-from transformers import pipeline
-import torch
 import time
 import json
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import os
+
 os.environ['CURL_CA_BUNDLE'] = ''
 
 
@@ -13,8 +12,11 @@ os.environ['CURL_CA_BUNDLE'] = ''
 st.set_page_config(page_title="Audio-to-Text Transcription", layout="centered", initial_sidebar_state="auto")
 
 # Add API endpoint configuration
-api_endpoint = "https://seemingly-ultimate-ape.ngrok-free.app/transcribe"
+api_endpoint_whisper = "https://seemingly-ultimate-ape.ngrok-free.app/transcribe"
+api_endpoint_sl = "https://seemingly-ultimate-ape.ngrok-free.app/transcribe-sl"
 status_endpoint = "https://seemingly-ultimate-ape.ngrok-free.app/status/"
+
+
 
 # Define the app layout
 def main():
@@ -29,10 +31,16 @@ def main():
     # Select language and task
     languages = ['English', 'Mandarin', 'Malay']  # Choose the source language
     tasks = ['transcribe', 'translate']  # When you choose translate, it translates to English
+    models = ['whisper', 'speechlab']
     
     language = st.selectbox("Choose the language of the audio", options=languages)
-    st.write("**When you choose 'translate', it translates the audio to English**.")
+    model = st.selectbox("Choose the model", options=models)
+    if model == 'whisper':
+        api_endpoint = api_endpoint_whisper
+    else:
+        api_endpoint = api_endpoint_sl
     task = st.selectbox("Choose the task", options=tasks)
+    st.write("**Note: When you choose 'translate' task, it translates the audio to English Text**.")
     
     # Transcribe button
     if uploaded_file is not None:
