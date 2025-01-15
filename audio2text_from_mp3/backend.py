@@ -321,12 +321,10 @@ def process_sl_transcription(job_id: str, file_path: str, language=None):
                 # Wait for the complete transcription
                 result = ws.get_full_hyp(timeout=300)  # 5 minutes timeout
 
-                if result.strip():
-                    jobs[job_id]['status'] = 'completed'
-                    jobs[job_id]['result'] = result.strip()
-                else:
-                    jobs[job_id]['status'] = 'failed'
-                    jobs[job_id]['error'] = "No transcription result received"
+                
+                jobs[job_id]['status'] = 'completed'
+                jobs[job_id]['result'] = result.strip()
+                
 
             except TimeoutError:
                 jobs[job_id]['status'] = 'failed'

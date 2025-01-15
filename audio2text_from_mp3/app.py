@@ -24,7 +24,7 @@ def main():
     st.markdown("<p style='color: #000000;'>Generate transcription with timestamps and download the result.</p>", unsafe_allow_html=True)
     
     # File uploader
-    uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "wav", "ogg"])
+    uploaded_file = st.file_uploader("Upload an audio file. (Speechlab service only can handle wav)", type=["mp3", "wav", "ogg"])
     if uploaded_file is not None:
         st.audio(uploaded_file)
     
@@ -62,7 +62,6 @@ def main():
                         files=files,
                         data=data
                     )
-                    loop_count = 0
                     
                     if response.status_code == 200:
                         result = response.json()
@@ -72,8 +71,9 @@ def main():
                             
                             # Poll for status
                             with st.spinner("Waiting for transcription to complete..."):
+                                progress_placeholder = st.empty()  # Add this line here
                                 while True:
-                                    status_response = requests.get(status_endpoint + job_id)
+                                    status_response = requests.get(status_endpoint + job_id, timeout=30)
                                     status_data = status_response.json()
                                     
                                     if not status_data.get('success'):
@@ -94,9 +94,7 @@ def main():
                                         st.error(f"Transcription failed: {error_message}")
                                         break
                                     else:
-                                        if loop_count % 20 == 0:
-                                            st.info(f"Transcription is still in progress... Current Runtime {time.time() - start_time:.0f}s")
-                                        loop_count += 1
+                                        progress_placeholder.info(f"Transcription is still in progress... Current Runtime {time.time() - start_time:.0f}s")
                                         time.sleep(3)  # Wait before polling again
                         else:
                             st.error(f"API Error: {result.get('error', 'Unknown error')}")
