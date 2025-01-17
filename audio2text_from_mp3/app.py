@@ -7,6 +7,9 @@ import os
 
 os.environ['CURL_CA_BUNDLE'] = ''
 
+#Updates to do: Add a button to download the audio from youtube and transcribe it, 
+# Add the English_Malay_v4 SL selection, 
+# develop transcription autonaming 
 
 # Set the page config at the top
 st.set_page_config(page_title="Audio-to-Text Transcription", layout="centered", initial_sidebar_state="auto")
@@ -25,16 +28,19 @@ def main():
     
     # File uploader
     uploaded_file = st.file_uploader("Upload an audio file. (Speechlab service only can handle wav)", type=["mp3", "wav", "ogg"])
+    transcription_file_name = ""
     if uploaded_file is not None:
         st.audio(uploaded_file)
+        transcription_file_name = uploaded_file.name.replace(".mp3", "").replace(".wav", "").replace(".ogg", "")
     
     # Select language and task
     languages = ['English', 'Mandarin', 'Malay']  # Choose the source language
     tasks = ['transcribe', 'translate']  # When you choose translate, it translates to English
-    models = ['whisper', 'speechlab']
+    models = ['whisper', 'default-speechlab', 'english_malay_v4-speechlab']
     
     language = st.selectbox("Choose the language of the audio", options=languages)
     model = st.selectbox("Choose the model", options=models)
+    transcription_file_name += "_" + model + ".txt"
     if model == 'whisper':
         api_endpoint = api_endpoint_whisper
     else:
@@ -53,7 +59,8 @@ def main():
                     files = {'file': uploaded_file}
                     data = {
                         'language': language.lower(),
-                        'task': task.lower()
+                        'task': task.lower(),
+                        'model': model.lower()
                     }
                     
                     # Send POST request to initiate transcription
@@ -87,7 +94,7 @@ def main():
                                         st.text_area(f"{task.capitalize()} Output", value=formatted_transcription, height=500)
                                         
                                         # Download transcription option
-                                        st.download_button("Download Transcription", formatted_transcription, file_name="transcription.txt")
+                                        st.download_button("Download Transcription", formatted_transcription, file_name=transcription_file_name)
                                         break
                                     elif status == 'failed':
                                         error_message = status_data.get('error', 'Unknown error')
