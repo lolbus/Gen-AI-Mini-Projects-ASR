@@ -52,68 +52,68 @@ def main():
     # Transcribe button
     if uploaded_file is not None:
         if st.button(f"{task.capitalize()}"):
-            with st.spinner("Processing..."):
-                start_time = time.time()
+            # with st.spinner("Processing..."):
+            st.info("Processing... Initiating a Transcription Job...")
+            start_time = time.time()
+            try:
+                # Prepare the request data
+                files = {'file': uploaded_file}
+                data = {
+                    'language': language.lower(),
+                    'task': task.lower(),
+                    'model': model.lower()
+                }
                 
-                try:
-                    # Prepare the request data
-                    files = {'file': uploaded_file}
-                    data = {
-                        'language': language.lower(),
-                        'task': task.lower(),
-                        'model': model.lower()
-                    }
-                    
-                    # Send POST request to initiate transcription
-                    response = requests.post(
-                        api_endpoint,
-                        files=files,
-                        data=data
-                    )
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        if result.get('success'):
-                            job_id = result.get('job_id')
-                            st.success(f"Transcription started! Job ID: {job_id}")
+                # Send POST request to initiate transcription
+                response = requests.post(
+                    api_endpoint,
+                    files=files,
+                    data=data
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get('success'):
+                        job_id = result.get('job_id')
+                        st.success(f"Transcription started! Job ID: {job_id}")
+                        
+                        # Poll for status
+                        # with st.spinner("Waiting for transcription to complete..."):
+                        progress_placeholder = st.empty()  # Add this line here
+                        while True:
+                            status_response = requests.get(status_endpoint + job_id, timeout=300)
+                            status_data = status_response.json()
                             
-                            # Poll for status
-                            with st.spinner("Waiting for transcription to complete..."):
-                                progress_placeholder = st.empty()  # Add this line here
-                                while True:
-                                    status_response = requests.get(status_endpoint + job_id, timeout=30)
-                                    status_data = status_response.json()
-                                    
-                                    if not status_data.get('success'):
-                                        st.error(status_data.get('error', 'Unknown error'))
-                                        break
-                                    
-                                    status = status_data.get('status')
-                                    if status == 'completed':
-                                        formatted_transcription = status_data.get('result')
-                                        st.success(f"{task.capitalize()} completed!")
-                                        st.text_area(f"{task.capitalize()} Output", value=formatted_transcription, height=500)
-                                        
-                                        # Download transcription option
-                                        st.download_button("Download Transcription", formatted_transcription, file_name=transcription_file_name)
-                                        break
-                                    elif status == 'failed':
-                                        error_message = status_data.get('error', 'Unknown error')
-                                        st.error(f"Transcription failed: {error_message}")
-                                        break
-                                    else:
-                                        progress_placeholder.info(f"Transcription is still in progress... Current Runtime {time.time() - start_time:.0f}s")
-                                        time.sleep(3)  # Wait before polling again
-                        else:
-                            st.error(f"API Error: {result.get('error', 'Unknown error')}")
+                            if not status_data.get('success'):
+                                st.error(status_data.get('error', 'Unknown error'))
+                                break
+                            
+                            status = status_data.get('status')
+                            if status == 'completed':
+                                formatted_transcription = status_data.get('result')
+                                st.success(f"{task.capitalize()} completed!")
+                                st.text_area(f"{task.capitalize()} Output", value=formatted_transcription, height=500)
+                                
+                                # Download transcription option
+                                st.download_button("Download Transcription", formatted_transcription, file_name=transcription_file_name)
+                                break
+                            elif status == 'failed':
+                                error_message = status_data.get('error', 'Unknown error')
+                                st.error(f"Transcription failed: {error_message}")
+                                break
+                            else:
+                                progress_placeholder.info(f"Transcription is still in progress... Current Runtime: {time.time() - start_time:.0f}s. Inference status: {status}")
+                                time.sleep(5)  # Wait before polling again
                     else:
-                        st.error(f"API request failed with status code: {response.status_code}")
-                
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
-                
-                end_time = time.time()
-                st.write(f"Time taken: {round(end_time - start_time, 2)} seconds")
+                        st.error(f"API Error: {result.get('error', 'Unknown error')}")
+                else:
+                    st.error(f"API request failed with status code: {response.status_code}")
+            
+            except Exception as e:
+                st.error(f"Error: {str(e)}")
+            
+            end_time = time.time()
+            st.write(f"Time taken: {round(end_time - start_time, 2)} seconds")
 
 # Helper function to format the transcription with timestamps (not needed anymore as backend handles it)
 
