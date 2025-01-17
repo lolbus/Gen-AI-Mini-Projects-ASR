@@ -8,6 +8,7 @@ import os
 os.environ['CURL_CA_BUNDLE'] = ''
 
 #Updates to do: Add a button to download the audio from youtube and transcribe it, 
+# Auto convert mp4/mp3 uploads to .wav
 # Add the English_Malay_v4 SL selection, 
 # develop transcription autonaming 
 
@@ -27,7 +28,7 @@ def main():
     st.markdown("<p style='color: #000000;'>Generate transcription with timestamps and download the result.</p>", unsafe_allow_html=True)
     
     # File uploader
-    uploaded_file = st.file_uploader("Upload an audio file. (Speechlab service only can handle wav)", type=["mp3", "wav", "ogg"])
+    uploaded_file = st.file_uploader("Upload an audio file. (Speechlab service only can handle wav)", type=["wav", "mp3"])
     transcription_file_name = ""
     if uploaded_file is not None:
         st.audio(uploaded_file)
