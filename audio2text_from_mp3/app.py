@@ -24,6 +24,10 @@ status_endpoint = "https://seemingly-ultimate-ape.ngrok-free.app/status/"
 
 # Define the app layout
 def main():
+    # Initialize session state using st.session_state.setdefault instead
+    st.session_state.setdefault('formatted_transcription', None)
+    st.session_state.setdefault('transcription_file_name', '')
+    
     st.markdown("<h1 style='color: #00bfff;'>Audio-to-Text Transcription App</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: #000000;'>Generate transcription with timestamps and download the result.</p>", unsafe_allow_html=True)
     
@@ -90,12 +94,8 @@ def main():
                             
                             status = status_data.get('status')
                             if status == 'completed':
-                                formatted_transcription = status_data.get('result')
+                                st.session_state.formatted_transcription = status_data.get('result')
                                 st.success(f"{task.capitalize()} completed!")
-                                st.text_area(f"{task.capitalize()} Output", value=formatted_transcription, height=500)
-                                
-                                # Download transcription option
-                                st.download_button("Download Transcription", formatted_transcription, file_name=transcription_file_name)
                                 break
                             elif status == 'failed':
                                 error_message = status_data.get('error', 'Unknown error')
@@ -114,6 +114,23 @@ def main():
             
             end_time = time.time()
             st.write(f"Time taken: {round(end_time - start_time, 2)} seconds")
+    
+    # Display transcription only once, outside the processing block
+    if st.session_state.formatted_transcription is not None:
+        st.text_area(
+            "Transcription Output", 
+            value=st.session_state.formatted_transcription, 
+            height=500,
+            key="transcription_output"
+        )
+        if transcription_file_name:  # Only show download button if we have a filename
+            st.download_button(
+                "Download Transcription", 
+                st.session_state.formatted_transcription, 
+                file_name=transcription_file_name,
+                key="download_button"
+            )
+    
 
 # Helper function to format the transcription with timestamps (not needed anymore as backend handles it)
 
